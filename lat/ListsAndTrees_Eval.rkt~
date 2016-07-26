@@ -1,0 +1,84 @@
+Assignment: Lists and Trees
+Name: <insert your name here>
+
+Instructions: 
+* Open this file in DrRacket (or your favorite plain-text editor) and add your answers 
+  at the end of each line for each question. If you want to add more explanation or 
+  justification, you may add one or more lines under the question.  Remember to add 
+  your name as well.  Once complete, submit this to Learning Suite as a plain text file.
+* For each of the correctness questions, indicate Yes (Y) or No (N).
+* For each of the documentation questions, indicate Yes (Y) or No (N).
+* For each of the test case questions, indicate the line number of the corresponding
+  test (or tests) using "L" and the number of the line.  For example, a test on
+  line 61 of the file would be "L61".  If you don't have a particular test, put "N".
+
+Function: check-temps1
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an empty case test?
+* Is there a cons (first) case test?
+* Is there a cons (second) case test?
+
+Function: check-temps
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an empty case test?
+* Is there a cons (first) case test?
+* Is there a cons (second) case test?
+
+Function: convert
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an empty case test?
+* Is there a cons (first) case test?
+* Is there a cons (second) case test?
+
+Function: average-price
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an empty case test?
+* Is there a cons (first) case test?
+* Is there a cons (second) case test?
+
+Function: convertFC
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an empty case test?
+* Is there a cons (first) case test?
+* Is there a cons (second) case test?
+
+Function: eliminate-exp
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an empty case test?
+* Is there a cons (first) case test?
+* Is there a cons (second) case test?
+
+Function: suffixes
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an empty case test?
+* Is there a cons (first) case test?
+* Is there a cons (second) case test?
+
+Function: count-persons
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an unknown case test?
+* Is there a person (first) case test?
+* Is there a person (second) case test?
+
+Function: average-age
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an unknown case test?
+* Is there a person (first) case test?
+* Is there a person (second) case test?
+
+Function: eye-colors
+* Is the function correct?
+* Is the function documented correctly (i.e. contract and purpose statement)?
+* Is there an unknown case test?
+* Is there a person (first) case test?
+* Is there a person (second) case test?
+

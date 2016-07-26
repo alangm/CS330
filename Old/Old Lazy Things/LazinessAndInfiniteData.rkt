@@ -1,0 +1,205 @@
+#lang lazy
+
+
+;; ---------- Testing Framework ----------
+(define print-only-errors #t)
+(define (test l r)
+  (if (equal? l r)
+      (if print-only-errors
+          (void)
+          (printf "Test Passed~n"))
+      (printf "Test Failed.~nActual:   ~S ~nExpected: ~S~n" l r)))
+
+
+
+;; ---------- take-while ----------
+;; take-while : (any/c -> boolean) (listof any/c) -> (listof any/c)
+;;
+;; Returns the prefix of l such that for all elements p returns true.
+
+(define (take-while p l)
+  (cond 
+    [(empty? l) empty]
+    [(p (first l)) (cons (first l) (take-while p (rest l)))]
+    [else empty]))
+
+
+
+;; ---------- build-infinite-list ----------
+;; build-infinite-list : (exact-nonnegative-integer -> any/c) -> (listof any/c)
+;;
+;; Lazily constructs the infinite list such that
+;;   (list-ref (build-infinite-list f) i) returns (f i).
+
+(define (build-infinite-list f)
+  (define l (cons 0 (map add1 l)))
+  (map f l))
+
+
+
+;; ---------- prime? ----------
+;; prime? : exact-positive-integer -> boolean
+;;
+;; Returns true if n is prime
+;;
+;; a number with no divisors other than 1 and itself is prime
+;; a number with no prime divisors is also prime
+ 
+(define prime?
+  (lambda (n)
+    (cond
+      [(< n 2) false]
+      [(= n 2) true]
+      [(even? n) false]
+      [else
+        (let prime-test ((d 3))
+          (cond
+            [(> (* d d) n) true]
+            [(divides? n d) false]
+            [else (prime-test (+ d 2))]))])))
+
+;; helper function
+(define divides?
+  (lambda (a b)
+    (= (remainder a b) 0)))
+
+
+
+;; ---------- primes ----------
+;; primes : (listof exact-positive-integer)
+;;
+;; The list of all primes
+
+(define primes
+  (filter (lambda (n) (prime? n)) (build-infinite-list (lambda (n) (+ 1 n)))))
+
+
+
+;; ---------- prime?/fast ----------
+;; prime?/fast : exact-positive-integer -> boolean
+;;
+;; Returns true if n is prime, but tests only prime factors from primes/fast.
+(define (prime?/fast n)
+  (cond
+    [(< n 2) false]
+    [(= n 2) true]
+    [else 
+      (empty? 
+        (filter (lambda (x) (= (modulo n x) 0))
+                (take-while (lambda (x) (<= (* 2 x) n)) 
+                            primes/fast)))]))
+
+;; ---------- primes/fast ----------
+;; primes/fast : (listof exact-positive-integer)
+;;
+;; The list of all primes constructed with prime?/fast.
+(define primes/fast
+  (filter (lambda (n) (prime?/fast n)) (build-infinite-list (lambda (n) (+ 1 n)))))
+
+
+
+
+
+;; ---------- Testing take-while ----------
+(test (take-while (lambda (n) (< n 5)) (list 1 2 3 4 5 1 2)) (list 1 2 3 4))
+(test (take-while odd? (list 1 3 4)) (list 1 3))
+(test (take-while (lambda (n) true) '()) '())
+(test (take-while (lambda (n) true) '(1 2 3 4)) '(1 2 3 4))
+(test (take-while (lambda (n) false) '(1 2 3 4)) '())
+
+;; ---------- Testing build-infinite-list ----------
+(test (list-ref (build-infinite-list (lambda (n) (+ n 0))) 0) 0)
+(test (list-ref (build-infinite-list (lambda (n) (+ n 2))) 7) 9)
+(test (list-ref (build-infinite-list (lambda (n) (+ n 100))) 0) 100)
+
+;; ---------- Testing prime? ----------
+(test (prime? 2) true)
+(test (prime? 3) true)
+(test (prime? 5) true)
+(test (prime? 7) true)
+(test (prime? 11) true)
+(test (prime? 13) true)
+(test (prime? 19) true)
+(test (prime? 23) true)
+(test (prime? 29) true)
+(test (prime? 113) true)
+(test (prime? 2467) true)
+(test (prime? 3463) true)
+(test (prime? 5741) true)
+
+(test (prime? -1) false)
+(test (prime? 1) false)
+(test (prime? 0) false)
+(test (prime? 4) false)
+(test (prime? 8) false)
+(test (prime? 10) false)
+(test (prime? 50) false)
+(test (prime? 75) false)
+(test (prime? 1232) false)
+(test (prime? 1240) false)
+
+;; ---------- Testing primes ----------
+(test (list-ref primes 0) 2)
+(test (list-ref primes 1) 3)
+(test (list-ref primes 2) 5)
+(test (list-ref primes 3) 7)
+(test (list-ref primes 4) 11)
+(test (list-ref primes 5) 13)
+(test (list-ref primes 6) 17)
+(test (list-ref primes 7) 19)
+(test (list-ref primes 8) 23)
+(test (list-ref primes 9) 29)
+(test (list-ref primes 10) 31)
+(test (list-ref primes 167) 997)
+(test (list-ref primes 309) 2053)
+(test (list-ref primes 499) 3571)
+
+;; ---------- Testing prime?/fast ----------
+(test (prime?/fast -1) false)
+(test (prime?/fast 0) false)
+(test (prime?/fast 1) false)
+(test (prime?/fast 2) true)
+(test (prime?/fast 3) true)
+(test (prime?/fast 5) true)
+(test (prime?/fast 7) true)
+(test (prime?/fast 11) true)
+(test (prime?/fast 13) true)
+(test (prime?/fast 19) true)
+(test (prime?/fast 23) true)
+(test (prime?/fast 29) true)
+(test (prime?/fast 113) true)
+(test (prime?/fast 2467) true)
+(test (prime?/fast 3463) true)
+(test (prime?/fast 5741) true)
+
+(test (prime?/fast 4) false)
+(test (prime?/fast 8) false)
+(test (prime?/fast 10) false)
+(test (prime?/fast 50) false)
+(test (prime?/fast 75) false)
+(test (prime?/fast 1232) false)
+(test (prime?/fast 1240) false)
+
+;; ---------- Testing primes/fast ----------
+(test (list-ref primes/fast 0) 2)
+(test (list-ref primes/fast 1) 3)
+(test (list-ref primes/fast 2) 5)
+(test (list-ref primes/fast 3) 7)
+(test (list-ref primes/fast 4) 11)
+(test (list-ref primes/fast 5) 13)
+(test (list-ref primes/fast 6) 17)
+(test (list-ref primes/fast 7) 19)
+(test (list-ref primes/fast 8) 23)
+(test (list-ref primes/fast 9) 29)
+(test (list-ref primes/fast 10) 31)
+(test (list-ref primes/fast 167) 997)
+(test (list-ref primes/fast 309) 2053)
+(test (list-ref primes/fast 499) 3571)
+
+
+
+
+
+
+
+

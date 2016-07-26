@@ -1,0 +1,161 @@
+#lang plai
+
+;; abstract syntax
+;(define-type CFWAE
+;  [num (n number?)]
+;  [add (lhs CFWAE?) (rhs CFWAE?)]
+;  [subtract (lhs CFWAE?) (rhs CFWAE?)]
+;  [multiply (lhs CFWAE?) (rhs CFWAE?)]
+;  [divide (lhs CFWAE?) (rhs CFWAE?)]
+;  [id (name symbol?)]
+;  [if0 (cond CFWAE?) (then CFWAE?) (else CFWAE?)]
+;  [with (name symbol?) (named-expr CFWAE?) (body CFWAE?)]
+;  [fun (param symbol?) (body CFWAE?)]
+;  [app (fun-expr CFWAE?) (arg-expr CFWAE?)])
+
+(define-type Binding
+  [binding (name symbol?) (named-expr CFWAE?)])
+ 
+(define-type CFWAE
+  [num (n number?)]
+  [binop (op procedure?) (lhs CFWAE?) (rhs CFWAE?)]
+  [with (lob (listof Binding?)) (body CFWAE?)]
+  [id (name symbol?)]
+  [if0 (c CFWAE?) (t CFWAE?) (e CFWAE?)]
+  [fun (args (listof symbol?)) (body CFWAE?)]
+  [app (f CFWAE?) (args (listof CFWAE?))])
+
+;; internal representation of possible return values
+(define-type CFWAE-Value
+  [numV (n number?)]
+  [closureV (params (listof symbol?))
+            (body CFWAE?)
+            (env Env?)])
+
+;; internal representation of an environment
+(define-type Env
+  [mtEnv]
+  [anEnv (name symbol?) (value CFWAE-Value?) (env Env?)])
+
+;; lookup : symbol Env -> CFWAE-Value
+;; looks up an identifier in an environment and returns the value
+;; bound to it (or reports error if not found)
+(define (lookup name env)
+  (type-case Env env
+    [mtEnv () (error 'lookup "no binding for identifier")]
+    [anEnv (bound-name bound-value rest-env)
+           (if (symbol=? bound-name name)
+               bound-value
+               (lookup name rest-env))]))
+
+;; num+ : numV numV −> numV
+;; adds two numV number representations
+(define (num+ n1 n2)
+  (numV (+ (numV-n n1) (numV-n n2))))
+
+;; num- : numV numV -> numV
+;; subtracts two numV number representations
+(define (num- n1 n2)
+  (numV (- (numV-n n1) (numV-n n2))))
+
+;; num* : numV numV -> numV
+;; multiplies two numV number representations
+(define (num* n1 n2)
+  (numV (* (numV-n n1) (numV-n n2))))
+
+;; num/ : numV numV -> numV
+;; divides two numV number representations
+(define (num/ n1 n2)
+  (numV (/ (numV-n n1) (numV-n n2))))
+
+
+;; parse : sexp −> CFWAE
+;; to convert s-expressions into CFWAEs
+(define (parse sexp)
+  (cond
+    [(number? sexp) (num sexp)]
+    [(symbol? sexp) (id sexp)]
+    [(list? sexp)
+     (case (first sexp)
+       [(operator?) (binop (first sexp)
+                           (parse (second sexp))
+                           (parse (third sexp)))]
+       [(if0) (if (zero? (parse (second sexp)))
+                  (parse (third sexp))
+                  (parse (fourth sexp)))]
+       [(with) (with (first (second sexp))
+                     (parse (second (second sexp)))
+                     (parse (third sexp)))]
+       [(fun) (fun (first (second sexp))
+                   (parse (third sexp)))]
+       [else (app (parse (first sexp))
+                  (parse (second sexp)))])]))
+
+;; interp : CFWAE Env -> CFWAE-Value
+;; evaluates an expression with respect to the current environment
+(define (interp expr env)
+  (type-case CFWAE expr
+    [num (n) (numV n)]
+;    [add (l r) (num+ (interp l env) (interp r env))]
+    [binop (p l r)
+           (case p
+             [(+) (num+ (interp l env) (interp r env))]
+             [(-) (num- (interp l env) (interp r env))]
+             [(*) (num* (interp l env) (interp r env))]
+             [(/) (num/ (interp l env) (interp r env))])]
+    [id (v) (lookup v env)]
+    [if0 (c t e) (if (zero? (interp c env))
+                     (interp t env)
+                     (interp e env))]
+;    [with (bound-id named-expr bound-body)
+;          (interp bound-body
+;                  (anEnv bound-id
+;                         (interp named-expr
+;                                 env)
+;                         env))]
+    [with (named-expr bound-body); not real!!!
+          (4)]
+    [fun (bound-id bound-body)
+         (closureV bound-id bound-body env)]
+    [app (fun-expr arg-expr)
+         (local ([define fun-val (interp fun-expr env)])
+           (interp (closureV-body fun-val)
+                   (anEnv (closureV-params fun-val)
+                          (interp arg-expr env)
+                          (closureV-env fun-val))))]
+    )
+  )
+
+;; run : s-expression -> numV
+;; parses then evaluates an s-expression in the FWAE language
+(define (run expr) 
+  (interp 
+   (parse expr)
+   (mtEnv)))
+
+;; -- some examples --
+
+(run '{with {double {fun {x} {+ x x}}} {double 5}})
+
+(run '{fun {x} x})
+
+(run '{fun {x}
+           {fun {y} 
+                {+ x y}}})
+
+(run '{
+       {fun {x}
+            {fun {y} 
+                 {+ x y}}}
+       3
+       })
+
+(run '{with {x 3}
+            {fun {y}
+                 {+ x y}}})
+
+(run '{with {add3 {with {x 3}
+                        {fun {y}
+                             {+ x y}}}}
+            {add3 5}})
+

@@ -1,0 +1,72 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname BasicRacket_Eval) (read-case-sensitive #t) (teachpacks ()) (htdp-settings #(#t constructor repeating-decimal #f #t none #f () #f)))
+Assignment: Basic Racket
+Name: Alan Moody
+
+
+Instructions: 
+* Open this file in Racket (or your favorite plain-text editor) and add your answers 
+  at the end of each line for each question. If you want to add more explanation or 
+  justification, you may add one or more lines under the question.  Remember to add 
+  your name as well.  Once complete, submit this to Learning Suite as a plain text file.
+* For each of the documentation questions, indicate Yes (Y) or No (N).
+* For each of the test case questions, indicate the line number of the corresponding
+  test (or tests) using "L" and the number of the line.  For example, a test on
+  line 61 of the file would be "L61".  If you don't have a particular test, put "N".
+
+Function: sum-coins
+* Is the function documented correctly (i.e. contract and purpose statement)? -Y
+* Is there a pennies case test? -L7
+* Is there a nickles case test? -L8
+* Is there a dimes case test? -L9
+* Is there a quarters case test? -L10
+* Is there a combined case test? -L11
+
+Function: area-cylinder
+* Is the function documented correctly (i.e. contract and purpose statement)? -Y
+* Is there at least one test? -L19
+* Is there a second test to show generalization? -L20
+
+Function: tax
+* Is the function documented correctly (i.e. contract and purpose statement)? -Y
+* Is there at least one test? -L32
+* Is there a second test to show generalization? -L33
+
+Function: netpay
+* Is the function documented correctly (i.e. contract and purpose statement)? -Y
+* Is there at least one test? -L42
+* Is there a second test to show generalization? -L43
+
+Function: what-kind
+* Is the function documented correctly (i.e. contract and purpose statement)? -Y
+* Is there a degenerate case test? -L58
+* Is there a two case test? -L59
+* Is there an one case test? -L60
+* Is there a none case test? -L61
+
+Function: time-diff
+* Is the function documented correctly (i.e. contract and purpose statement)? -Y
+* Is there at least one test? -L73
+* Is there a second test to show generalization? -L74
+
+Function: area
+* Is the function documented correctly (i.e. contract and purpose statement)? -Y
+* Is there a circ case test? -L95
+* Is there a square case test? -L96
+* Is there a rect case test? -L97
+
+Function: translate-shape
+* Is the function documented correctly (i.e. contract and purpose statement)? -Y
+* Is there a circ case test? -L129
+* Is there a square case test? -L131
+* Is there a rect case test? -L133
+
+Function: in-shape
+* Is the function documented correctly (i.e. contract and purpose statement)? -Y
+* Is there a circ (inside) case test? -L191
+* Is there a square (inside) case test? -L193
+* Is there a rect (inside) case test? -L195
+* Is there a circ (outside) case test? -L198
+* Is there a square (outside) case test? -L200
+* Is there a rect (outside) case test? -L202

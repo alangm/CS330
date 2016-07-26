@@ -1,0 +1,235 @@
+#lang lazy
+
+(define print-only-errors #t)
+
+(define (test l r)
+  (if (equal? l r)
+      (if print-only-errors
+          (void)
+          (printf "Test Passed~n"))
+      (printf "Test Failed.~n    Actual:   ~S ~n    Expected: ~S~n" l r)))
+
+(define (build-vector num f)
+  (apply vector (build-list num f)))
+
+;; take-while : (any/c -> boolean) (listof any/c) -> (listof any/c)
+;; To return the prefix of l for which p(element) is true
+(define (take-while p l)
+  (cond 
+    [(empty? l) empty]
+    [(p (first l)) (cons (first l) (take-while p (rest l)))]
+    [else empty]))
+
+;; Empty list
+(test (take-while (λ (x) true) '()) '())
+
+;; Always true/false
+(test (take-while (λ (x) true) '(1 2 3 4 5)) '(1 2 3 4 5))
+(test (take-while (λ (x) false) '(1 2 3 4 5)) '())
+
+(test (take-while (λ (x) (> x 5)) '(6 7 8 9)) '(6 7 8 9))
+(test (take-while (λ (x) (> x 5)) '(0 6 7 8 9)) '())
+(test (take-while (λ (x) (< x 10)) '(7 8 9 10 9 8 7)) '(7 8 9))
+
+;; build-infinite-list : (exact-nonnegative-integer -> any/c) -> (listof any/c)
+;; To lazily construct an infinite list l such that (list-ref l i) is (f i)
+(define (build-infinite-list f)
+  (define l (cons 0 (map add1 l)))
+  (map f l))
+
+;; Identity function tests
+(test (list-ref (build-infinite-list values) 0) 0)
+(test (list-ref (build-infinite-list values) 1) 1)
+(test (list-ref (build-infinite-list values) 3423) 3423)
+
+(test (list-ref (build-infinite-list (λ (x) (even? x))) 0) true)
+(test (list-ref (build-infinite-list (λ (x) (even? x))) 1) false)
+(test (list-ref (build-infinite-list (λ (x) (even? x))) 2) true)
+(test (list-ref (build-infinite-list (λ (x) (even? x))) 3440) true)
+(test (list-ref (build-infinite-list (λ (x) (even? x))) 3441) false)
+
+;; prime? : exact-positive-integer -> boolean
+;; To determine if n is prime or not.
+;;
+;; if you confirm a number has no prime divisors, it is guaranteed to be prime
+;;
+(define (prime? n)
+  (cond
+    [(< n 2) false]
+    [(= n 2) true]
+    [else 
+     (empty?
+       (filter (λ (x)
+                 (and (> x 1)
+                      (= (modulo n x) 0)
+                      (prime? x)))
+               (build-list (- n 1) values)))]))
+
+(test (prime? 2) true)
+(test (prime? 3) true)
+(test (prime? 5) true)
+(test (prime? 7) true)
+(test (prime? 11) true)
+(test (prime? 13) true)
+(test (prime? 19) true)
+(test (prime? 23) true)
+(test (prime? 29) true)
+(test (prime? 113) true)
+(test (prime? 2467) true)
+(test (prime? 3463) true)
+(test (prime? 5741) true)
+
+(test (prime? -1) false)
+(test (prime? 1) false)
+(test (prime? 0) false)
+(test (prime? 4) false)
+(test (prime? 8) false)
+(test (prime? 10) false)
+(test (prime? 50) false)
+(test (prime? 75) false)
+(test (prime? 1232) false)
+(test (prime? 1240) false)
+
+;; primes : (listof exact-positive-integer)
+;; To lazily construct an infinite list of all primes
+(define primes (filter prime? (build-infinite-list values)))
+
+(test (list-ref primes 0) 2)
+(test (list-ref primes 1) 3)
+(test (list-ref primes 2) 5)
+(test (list-ref primes 3) 7)
+(test (list-ref primes 4) 11)
+(test (list-ref primes 5) 13)
+(test (list-ref primes 6) 17)
+(test (list-ref primes 7) 19)
+(test (list-ref primes 8) 23)
+(test (list-ref primes 9) 29)
+(test (list-ref primes 10) 31)
+(test (list-ref primes 167) 997)
+(test (list-ref primes 309) 2053)
+(test (list-ref primes 499) 3571)
+
+;; prime?/fast : exact-positive-integer -> boolean
+;; To determine if n is prime by only testing prime factors from primes/fast
+(define (prime?/fast n)
+  (cond
+    [(< n 2) false]
+    [(= n 2) true]
+    [else 
+     (empty? 
+       (filter (λ (x) (= (modulo n x) 0))
+               (take-while (λ (x) 
+                             (<= (* 2 x) n)) 
+                           primes/fast)))]))
+
+;; primes/fast : (listof exact-positive-integer)
+;; To lazily construct the list of all primes constructed with prime?/fast
+(define primes/fast (filter prime?/fast (build-infinite-list values)))
+
+(test (prime?/fast -1) false)
+(test (prime?/fast 0) false)
+(test (prime?/fast 1) false)
+(test (prime?/fast 2) true)
+(test (prime?/fast 3) true)
+(test (prime?/fast 5) true)
+(test (prime?/fast 7) true)
+(test (prime?/fast 11) true)
+(test (prime?/fast 13) true)
+(test (prime?/fast 19) true)
+(test (prime?/fast 23) true)
+(test (prime?/fast 29) true)
+(test (prime?/fast 113) true)
+(test (prime?/fast 2467) true)
+(test (prime?/fast 3463) true)
+(test (prime?/fast 5741) true)
+
+(test (prime?/fast 4) false)
+(test (prime?/fast 8) false)
+(test (prime?/fast 10) false)
+(test (prime?/fast 50) false)
+(test (prime?/fast 75) false)
+(test (prime?/fast 1232) false)
+(test (prime?/fast 1240) false)
+
+(test (list-ref primes/fast 0) 2)
+(test (list-ref primes/fast 1) 3)
+(test (list-ref primes/fast 2) 5)
+(test (list-ref primes/fast 3) 7)
+(test (list-ref primes/fast 4) 11)
+(test (list-ref primes/fast 5) 13)
+(test (list-ref primes/fast 6) 17)
+(test (list-ref primes/fast 7) 19)
+(test (list-ref primes/fast 8) 23)
+(test (list-ref primes/fast 9) 29)
+(test (list-ref primes/fast 10) 31)
+(test (list-ref primes/fast 167) 997)
+(test (list-ref primes/fast 309) 2053)
+(test (list-ref primes/fast 499) 3571)
+
+;; build-table : exact-positive-integer 
+;;               exact-positive-integer
+;;               (exact-nonnegative-integer exact-nonnegative-integer -> any/c)
+;;               ->
+;;               (vectorof (vectorof any/c))
+;; Lazily constructs a vector such that:
+;;  (vector-ref (vector-ref (build-table rows cols f) i) j) equals (f i j),
+;;      when (< i rows) (< j cols).
+(define (build-table rows cols f)
+  (build-vector rows (λ (r) (build-vector cols (λ (c) (f r c))))))
+
+(define t1 (build-table 3 1 (λ (x y) (+ x y))))
+(test (vector-ref (vector-ref t1 0) 0) 0) 
+(test (vector-ref (vector-ref t1 1) 0) 1) 
+(test (vector-ref (vector-ref t1 2) 0) 2)
+
+(define t2 (build-table 1 3 (λ (x y) (+ x y))))
+(test (vector-ref (vector-ref t2 0) 0) 0) 
+(test (vector-ref (vector-ref t2 0) 1) 1) 
+(test (vector-ref (vector-ref t2 0) 2) 2)
+
+(define t3 (build-table 3 3 (λ (x y) (+ x y))))
+(test (vector-ref (vector-ref t3 0) 0) 0) 
+(test (vector-ref (vector-ref t3 1) 0) 1) 
+(test (vector-ref (vector-ref t3 2) 0) 2) 
+(test (vector-ref (vector-ref t3 0) 1) 1) 
+(test (vector-ref (vector-ref t3 1) 1) 2) 
+(test (vector-ref (vector-ref t3 2) 1) 3) 
+(test (vector-ref (vector-ref t3 0) 2) 2) 
+(test (vector-ref (vector-ref t3 1) 2) 3) 
+(test (vector-ref (vector-ref t3 2) 2) 4)
+
+(define t4 (build-table 3 3 (λ (x y) (= x y))))
+(test (vector-ref (vector-ref t4 0) 0) true) 
+(test (vector-ref (vector-ref t4 1) 0) false)
+(test (vector-ref (vector-ref t4 2) 0) false) 
+(test (vector-ref (vector-ref t4 0) 1) false) 
+(test (vector-ref (vector-ref t4 1) 1) true) 
+(test (vector-ref (vector-ref t4 2) 1) false) 
+(test (vector-ref (vector-ref t4 0) 2) false) 
+(test (vector-ref (vector-ref t4 1) 2) false) 
+(test (vector-ref (vector-ref t4 2) 2) true)
+
+;; lcs-length : string string -> exact-nonnegative-integer
+;; To computer the length of the longest common subsequence of s1 and s2
+(define (lcs-length s1 s2)
+  (define 
+    t 
+    (build-table 
+      (+ (string-length s1) 1) (+ (string-length s2) 1)
+      (λ (r c)
+        (cond
+          [(or (= r 0) (= c 0)) 0]
+          [else
+           (if (char=? (string-ref s1 (- r 1)) (string-ref s2 (- c 1)))
+               (+ (vector-ref (vector-ref t (- r 1)) (- c 1)) 1)
+               (max (vector-ref (vector-ref t (- r 1)) c)
+                    (vector-ref (vector-ref t r) (- c 1))))]))))
+  (vector-ref (vector-ref t (string-length s1)) (string-length s2)))
+
+(test (lcs-length "identity" "identity") 8)
+(test (lcs-length "abcde" "fghijklmnop") 0)
+(test (lcs-length "artist" "artsy") 4)
+(test (lcs-length "computerscience" "compsci") 7)
+(test (lcs-length "monkey" "money") 5)
+(test (lcs-length "abababab" "aaaaaaaa") 4)
+(test (lcs-length "abababab" "bbbbbbbb") 4)

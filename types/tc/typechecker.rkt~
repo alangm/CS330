@@ -1,0 +1,105 @@
+#lang plai
+
+(define-type Expr
+  [num (n number?)]
+  [id (v symbol?)]
+  [bool (b boolean?)]
+  [bin-num-op (op procedure?) (lhs Expr?) (rhs Expr?)]
+  [iszero (e Expr?)]
+  [bif (test Expr?) (then Expr?) (else Expr?)]
+  [with (bound-id symbol?) (bound-body Expr?) (body Expr?)]
+  [fun (arg-id symbol?)
+       (arg-type Type?) (result-type Type?)
+       (body Expr?)]
+  [app (fun-expr Expr?) (arg-expr Expr?)]
+  [nempty]
+  [ncons (first Expr?) (rest Expr?)]
+  [nfirst (e Expr?)]
+  [nrest (e Expr?)]
+  [isnempty (e Expr?)])
+ 
+(define-type Type
+  [t-num]
+  [t-bool]
+  [t-nlist]
+  [t-fun (arg Type?) (result Type?)])
+
+(define op-table
+  (
+   list (list '+ +)
+        (list '- -)
+        (list '* *)
+        )
+  )
+
+(define (lookup-op op)
+  (cond
+    [(list? (assoc op op-table)) (second (assoc op op-table))]
+    [else #f]
+  )
+  )
+ 
+; parse : s-expression -> Expr
+(define (parse sexp)
+  (cond
+    [(number? sexp) (num sexp)]
+    [(equal? 'nempty sexp) (nempty)]
+    [(symbol? sexp) (id sexp)]
+    [(boolean? sexp) (bool sexp)]
+    [(list? sexp) (cond
+                    [(procedure? (lookup-op (first sexp)))
+                     (bin-num-op (lookup-op (first sexp)) (parse (second sexp)) (parse (third sexp)))]
+                    [(equal? 'iszero (first sexp))
+                     (iszero (parse (second sexp)))
+                     ]
+                    [(equal? 'bif (first sexp))
+                     (bif (parse (second sexp)) (parse (third sexp)) (parse (fourth sexp)))]
+                    [(equal? 'with (first sexp))
+                     (with (second sexp) (parse (third sexp)) (parse (fourth sexp)))]
+                    [(equal? 'fun (first sexp))
+                     (fun (parse (second sexp)) (type-of (second sexp)) (type-of (third sexp)) (parse (third sexp)))]
+                    [(list? (first sexp))
+                     (app (parse(first sexp)) (parse (second sexp)))]
+                    [(equal? 'ncons (first sexp))
+                     (ncons (parse (second sexp)) (parse (third sexp)))]
+                    [(equal? 'nfirst (first sexp))
+                     (nfirst (parse (second sexp)))]
+                    [(equal? 'nrest (first sexp))
+                     (nrest (parse (second sexp)))]
+                    [(equal? 'isnempty (first sexp))
+                     (isnempty (parse (second sexp)))]
+                    [else (error (first sexp))]
+                    )]
+    )
+  )
+
+; type-of : Expr -> Type
+(define (type-of e)
+  (cond
+    [(num? e) (t-num)]
+    [(bool? e) (t-bool)]
+    [(iszero? e) (if (num? (iszero-e e))
+                     (t-bool)
+                     (error "iszero must consume a number"))]
+    [(bin-num-op? e)(if
+                     (and (t-num? (type-of (bin-num-op-lhs e))) (t-num? (type-of (bin-num-op-rhs e)))) 
+                     (t-num)
+                     (error "bin-num-op must contain two numbers")
+                     )]
+    [(bif? e)(if
+              (and (t-bool? (type-of (bif-test e))) (equal? (type-of (bif-then e)) (type-of (bif-else e))))
+              (type-of (bif-then e))
+              (error 'bif "Type of then and else must be the same")
+              )]
+    ;[(with? e) ] ;TODO
+    ;[(fun? e) (tfun (fun-arg-type e) (fun-result-type e))]
+    ;[(app? e) ()]
+    [(ncons? e) (if (and (t-num? (type-of (ncons-first e))) (t-nlist? (type-of(ncons-rest e))))
+                   (t-nlist)
+                   (error 'ncons "Something went wrong")
+                   )]
+    ;[(nfirst? e)()]
+    ;[(nrest? e) ()]
+    ;[(isnempty? e)]
+    )
+  )
